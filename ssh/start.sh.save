@@ -1,0 +1,35 @@
+
+
+
+
+
+
+exit
+asdf
+
+qwer
+
+#!/bin/bash
+# SSH container startup script
+
+# Start SSH server
+/usr/sbin/sshd
+
+# Initialize tc interface (no changes by default)
+tc qdisc del dev eth0 root 2>/dev/null || true
+
+# Set up SSH tunnel
+echo "Setting up SSH port forwarding tunnel..."
+
+# Forward from port 7000 to tls-server:8000 (direct access to nginx)
+ssh -f -N -L 0.0.0.0:7000:tls-server:8000 root@localhost &
+echo "SSH tunnel established: localhost:7000 -> tls-server:8000 (nginx)"
+
+# Output status
+echo "SSH port forwarding container started"
+echo "- Access to web server via SSH tunnel: port 7000"
+echo "  (This provides an SSH tunnel alternative to the stunnel TLS tunnel)"
+echo "Traffic Control (tc) available for network simulation"
+
+# Keep container running
+tail -f /dev/null
