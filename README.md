@@ -21,16 +21,16 @@ time curl -s -o /dev/null http://localhost:8000/100MB.bin  # Direct (no tunnel)
 
 ## Available Tunneling Methods
 
-| Method | Port | Description | Command |
-|--------|------|-------------|---------|
-| Direct | 8000 | No tunnel, direct nginx access | `curl http://localhost:8000/100MB.bin` |
-| TLS 1.3 | 9000 | Strong encryption | `curl http://localhost:9000/100MB.bin` |
-| TLS 1.2 NULL | 9001 | Authentication only, no encryption | `curl http://localhost:9001/100MB.bin` |
-| SSH | 7000 | Basic SSH port forwarding | `curl http://localhost:7000/100MB.bin` |
-| HAProxy | 7100 | TCP proxy with HAProxy | `curl http://localhost:7100/100MB.bin` |
-| Nginx TCP | 7200 | TCP proxy with Nginx | `curl http://localhost:7200/100MB.bin` |
-| Nginx NAT | 7300 | NAT implementation with Nginx | `curl http://localhost:7300/100MB.bin` |
-| Pure NAT | 7400 | Kernel-level NAT using iptables only | `curl http://localhost:7400/100MB.bin` |
+| Method | Port | Description | Command | Status |
+|--------|------|-------------|---------|--------|
+| Direct | 8000 | No tunnel, direct nginx access | `curl http://localhost:8000/100MB.bin` | ok |
+| TLS 1.3 | 9000 | Strong encryption | `curl http://localhost:9000/100MB.bin` | ok |
+| TLS 1.2 NULL | 9001 | Authentication only, no encryption | `curl http://localhost:9001/100MB.bin` | wip |
+| SSH | 7000 | Basic SSH port forwarding | `curl http://localhost:7000/100MB.bin` | ok |
+| HAProxy | 7100 | TCP proxy with HAProxy | `curl http://localhost:7100/100MB.bin` | ok |
+| Nginx TCP | 7200 | TCP proxy with Nginx | `curl http://localhost:7200/100MB.bin` | ok |
+| Nginx NAT | 7300 | NAT implementation with Nginx | `curl http://localhost:7300/100MB.bin` | wip |
+| Pure NAT | 7400 | Kernel-level NAT using iptables only | `curl http://localhost:7400/100MB.bin` | wip |
 
 ## External SSH Tunnels
 
@@ -87,6 +87,12 @@ You can apply conditions to any container (tls-server, tls-client, tls-null, ssh
 ## Useful Commands
 
 ```bash
+# Get terminal
+docker exec it tls-server bash
+
+# start ssh
+docker exec tls-server /usr/sbin/sshd
+
 # Rebuild and restart
 docker-compose down && docker-compose build && docker-compose up -d
 
