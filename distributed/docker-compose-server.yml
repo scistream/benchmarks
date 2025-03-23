@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Server side with stunnel and nginx file server
+  tls-server:
+    build:
+      context: ../server
+    container_name: tls-server
+    hostname: tls-server
+    ports:
+      - "8000:8000"  # Direct access to nginx
+      - "8443:8443"  # Standard TLS tunnel (TLS 1.3)
+      - "8444:8444"  # NULL cipher TLS tunnel (TLS 1.2)
+      - "22:22"      # SSH access for tunneling
+    volumes:
+      - ../shared:/shared
+      - ../config:/config
+      - ../data:/data
+    cap_add:
+      - NET_ADMIN  # Required for tc network traffic control
+    networks:
+      - server-network
+
+networks:
+  server-network:
+    driver: bridge
