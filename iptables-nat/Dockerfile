@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install -y iptables iproute2 iputils-ping curl && \
+    apt-get install -y iptables iproute2 iputils-ping curl netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories for volumes

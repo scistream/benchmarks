@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install -y stunnel4 curl iputils-ping iproute2 && \
+    apt-get install -y stunnel4 curl iputils-ping iproute2 netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 # Create stunnel directory

@@ -13,7 +13,7 @@ iptables -t nat -F
 
 # Set up NAT for port 7400 to tls-server:8000
 # This redirects all traffic coming to port 7400 to tls-server port 8000
-iptables -t nat -A PREROUTING -p tcp --dport 7400 -j DNAT --to-destination tls-server:8000
+iptables -t nat -A PREROUTING -p tcp --dport 7400 -j DNAT --to-destination 172.18.0.2:8000
 iptables -t nat -A POSTROUTING -j MASQUERADE
 
 echo "Pure iptables NAT started on port 7400 -> tls-server:8000"

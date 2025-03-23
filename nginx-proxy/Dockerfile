@@ -2,7 +2,7 @@ FROM nginx:1.22
 
 # Install additional tools
 RUN apt-get update && \
-    apt-get install -y iproute2 iputils-ping curl iptables && \
+    apt-get install -y iproute2 iputils-ping curl iptables netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories for volumes

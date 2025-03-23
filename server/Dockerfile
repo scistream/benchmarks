@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install -y stunnel4 nginx iproute2 openssh-server && \
+    apt-get install -y stunnel4 nginx iproute2 openssh-server netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure SSH

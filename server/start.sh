@@ -11,24 +11,21 @@ chmod 600 /etc/stunnel/stunnel.pem
 ln -sf /config/nginx-server.conf /etc/nginx/sites-available/fileserver
 ln -sf /etc/nginx/sites-available/fileserver /etc/nginx/sites-enabled/default
 
-# Initialize tc interface (no changes by default)
+# Initialize tc interface
 tc qdisc del dev eth0 root 2>/dev/null || true
 
-# Setup authorized_keys file for SSH access
+# Setup SSH keys from config directory
 mkdir -p /root/.ssh
-touch /root/.ssh/authorized_keys
-chmod 600 /root/.ssh/authorized_keys
+if [ -f /config/ssh/id_rsa.pub ]; then
+    cat /config/ssh/id_rsa.pub > /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+fi
 
 # Start services
 service nginx start
 stunnel4 # Start standard stunnel
 stunnel4 /etc/stunnel/stunnel-null.conf # Start stunnel with NULL cipher
 /usr/sbin/sshd # Start SSH server
-
-# Output status
-echo "Nginx started. Serving files from /data on port 8000"
-echo "Stunnel started. Forwarding from port 8443 to 8000"
-echo "Traffic Control (tc) available for network simulation"
 
 # Keep container running and monitor logs
 tail -f /var/log/nginx/access.log /var/log/nginx/error.log /shared/stunnel-server.log
