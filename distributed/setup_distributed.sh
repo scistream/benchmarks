@@ -32,9 +32,7 @@ sed -i "s/connect = tls-server:8444/connect = $SERVER_IP:8444/" ../config/stunne
 echo "Updating HAProxy configuration..."
 sed -i "s/server tls-server tls-server:8000/server tls-server $SERVER_IP:8000/" ../haproxy/haproxy.cfg
 
-# 3. Update Nginx proxy config
-echo "Updating Nginx proxy configuration..."
-sed -i "s/proxy_pass tls-server:8000/proxy_pass $SERVER_IP:8000/" ../nginx-proxy/nginx.conf
+# 3. Nginx proxy removed from configuration
 
 # 4. Update iptables-nat config in start.sh
 echo "Updating iptables-nat configuration..."
@@ -52,7 +50,6 @@ docker exec tls-client bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
 docker exec tls-null bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
 docker exec ssh bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
 docker exec haproxy bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
-docker exec nginx-proxy bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
 docker exec iptables-nat bash -c "echo '$SERVER_IP tls-server' >> /etc/hosts"
 
 echo "DNS entries added to all client containers."

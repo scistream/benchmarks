@@ -3,27 +3,28 @@ version: '3.8'
 services:
   # Server side with stunnel and nginx file server
   tls-server:
-    build:
-      context: ./server
+    image: scistream-benchmark:latest
     container_name: tls-server
     hostname: tls-server
     ports:
       - "8000:8000"  # Direct access to nginx
       - "8443:8443"  # Standard TLS tunnel (TLS 1.3)
       - "8444:8444"  # NULL cipher TLS tunnel (TLS 1.2)
+      - "2223:22"    # SSH server (changed host port from 22 to 2223)
     networks:
       - test-network
     volumes:
       - ./shared:/shared
       - ./config:/config
       - ./data:/data
+      - ./server/start.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
+    command: ["/start.sh"]
 
   # Client side with stunnel (TLS 1.3)
   tls-client:
-    build:
-      context: ./client
+    image: scistream-benchmark:latest
     container_name: tls-client
     hostname: tls-client
     networks:
@@ -35,13 +36,14 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
+      - ./client/start.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
+    command: ["/start.sh"]
       
   # Client side with stunnel using TLS 1.2 and NULL cipher
   tls-null:
-    build:
-      context: ./tls-null
+    image: scistream-benchmark:latest
     container_name: tls-null
     hostname: tls-null
     networks:
@@ -53,13 +55,14 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
+      - ./tls-null/start.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
+    command: ["/start.sh"]
 
   # SSH forwarding container
   ssh:
-    build:
-      context: ./ssh
+    image: scistream-benchmark:latest
     container_name: ssh
     hostname: ssh
     networks:
@@ -72,10 +75,14 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
+      - ./ssh/start.sh:/start.sh
+      - ./ssh/ssh_config:/tmp/ssh_config
+    privileged: true  # Required for full system access
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
+    command: ["/start.sh"]
       
-  # HAProxy TCP proxy container
+  # HAProxy TCP proxy container (using official image)
   haproxy:
     image: haproxy:2.6.14
     container_name: haproxy
@@ -89,35 +96,13 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - ./shared:/shared
+      - ./haproxy/start.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
-    command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-db"]
-      
-  # Nginx TCP proxy container
-  nginx-proxy:
-    build:
-      context: ./nginx-proxy
-    container_name: nginx-proxy
-    hostname: nginx-proxy
-    networks:
-      - test-network
-    ports:
-      - "7200:7200"  # Nginx TCP proxy to tls-server
-      - "7300:7300"  # Nginx NAT implementation to tls-server
-    depends_on:
-      - tls-server
-    volumes:
-      - ./shared:/shared
-      - ./config:/config
-    cap_add:
-      - NET_ADMIN  # Required for tc network traffic control
-      - NET_RAW    # Required for NAT functionality
-      - SYS_ADMIN  # Required for sysctl commands
-      
+    command: ["/start.sh"]
   # Pure iptables NAT container (no proxy server)
   iptables-nat:
-    build:
-      context: ./iptables-nat
+    image: scistream-benchmark:latest
     container_name: iptables-nat
     hostname: iptables-nat
     networks:
@@ -128,9 +113,11 @@ services:
       - tls-server
     volumes:
       - ./shared:/shared
+      - ./iptables-nat/start.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for iptables
       - NET_RAW    # Required for NAT functionality
+    command: ["/start.sh"]
 
 networks:
   test-network:

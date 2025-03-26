@@ -1,6 +1,6 @@
 # TLS Tunnel Performance Testing with Docker
 
-This project provides a Docker-based environment to test and compare performance of various secure tunneling methods, including TLS tunnels, SSH tunnels, and TCP proxies.
+This project provides a Docker-based environment to test and compare performance of various secure tunneling methods, including TLS tunnels, SSH tunnels, and TCP proxies. Uses a unified base Docker image for all test scenarios except HAProxy.
 
 ## Quick Start
 
@@ -11,7 +11,7 @@ cd benchmarks
 
 # Setup environment, build and start containers
 ./scripts/setup.sh
-docker-compose build
+./scripts/build_unified_image.sh  # Build the unified Docker image
 docker-compose up -d
 
 # Run test examples
@@ -28,11 +28,7 @@ time curl -s -o /dev/null http://localhost:8000/100MB.bin  # Direct (no tunnel)
 | TLS 1.2 NULL | 9001 | Authentication only, no encryption | tls-null → tls-server | ok |
 | SSH | 7000 | SSH port forwarding | ssh → tls-server | ok |
 | HAProxy | 7100 | TCP proxy with HAProxy | haproxy → tls-server | ok |
-| Nginx TCP | 7200 | TCP proxy with Nginx stream module | nginx-proxy → tls-server | ok |
-| Nginx NAT | 7300 | NAT implementation with Nginx | nginx-proxy → tls-server | wip |
 | Pure NAT | 7400 | Kernel-level NAT using iptables | iptables-nat → tls-server | ok |
-| External SSH | 7500 | SSH tunnel from host | ssh container → tls-server | ok |
-| Jump Host SSH | 7600 | SSH tunnel via jump host | host → ssh → tls-server | ok |
 
 ## Testing & Analysis Tools
 
@@ -59,7 +55,7 @@ Apply different network conditions using traffic control (tc):
 
 ```bash
 # Apply conditions to any container (add one of these):
-#   tls-server, tls-client, tls-null, ssh, haproxy, nginx-proxy, iptables-nat
+#   tls-server, tls-client, tls-null, ssh, haproxy, iptables-nat
 
 # Scenario A: Low latency (10ms), 1Gbps
 docker exec --privileged tls-server tc qdisc add dev eth0 root netem delay 10ms rate 1gbit

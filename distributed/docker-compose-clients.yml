@@ -65,26 +65,6 @@ services:
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-db"]
-      
-  # Nginx TCP proxy container
-  nginx-proxy:
-    build:
-      context: ../nginx-proxy
-    container_name: nginx-proxy
-    hostname: nginx-proxy
-    networks:
-      - client-network
-    ports:
-      - "7200:7200"  # Nginx TCP proxy to tls-server
-      - "7300:7300"  # Nginx NAT implementation to tls-server
-    volumes:
-      - ../shared:/shared
-      - ../config:/config
-    cap_add:
-      - NET_ADMIN  # Required for tc network traffic control
-      - NET_RAW    # Required for NAT functionality
-      - SYS_ADMIN  # Required for sysctl commands
-      
   # Pure iptables NAT container (no proxy server)
   iptables-nat:
     build:

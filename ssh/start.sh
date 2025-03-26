@@ -4,7 +4,7 @@
 # Start SSH server
 /usr/sbin/sshd
 
-# Set up SSH keys from config directory
+# Set up SSH keys and config with proper permissions
 mkdir -p /root/.ssh
 if [ -f /config/ssh/id_rsa ]; then
     cp /config/ssh/id_rsa /root/.ssh/id_rsa
@@ -13,6 +13,11 @@ if [ -f /config/ssh/id_rsa ]; then
     chmod 600 /root/.ssh/id_rsa
     chmod 600 /root/.ssh/authorized_keys
 fi
+
+# Copy SSH config from the temporary location and set proper permissions
+cp /tmp/ssh_config /root/.ssh/config
+chmod 600 /root/.ssh/config
+chown root:root /root/.ssh/config
 
 # Initialize tc interface
 tc qdisc del dev eth0 root 2>/dev/null || true
