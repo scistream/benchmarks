@@ -17,7 +17,7 @@ services:
       - ./shared:/shared
       - ./config:/config
       - ./data:/data
-      - ./server/start.sh:/start.sh
+      - ./scripts/startup/tls-server.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     command: ["/start.sh"]
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
-      - ./client/start.sh:/start.sh
+      - ./scripts/startup/tls-client.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     command: ["/start.sh"]
@@ -55,7 +55,7 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
-      - ./tls-null/start.sh:/start.sh
+      - ./scripts/startup/tls-null.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     command: ["/start.sh"]
@@ -75,7 +75,7 @@ services:
     volumes:
       - ./shared:/shared
       - ./config:/config
-      - ./ssh/start.sh:/start.sh
+      - ./scripts/startup/ssh-tunnel.sh:/start.sh
       - ./ssh/ssh_config:/tmp/ssh_config
     privileged: true  # Required for full system access
     cap_add:
@@ -96,7 +96,7 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - ./shared:/shared
-      - ./haproxy/start.sh:/start.sh
+      - ./scripts/startup/haproxy.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     command: ["/start.sh"]
@@ -113,7 +113,7 @@ services:
       - tls-server
     volumes:
       - ./shared:/shared
-      - ./iptables-nat/start.sh:/start.sh
+      - ./scripts/startup/iptables-nat.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for iptables
       - NET_RAW    # Required for NAT functionality
