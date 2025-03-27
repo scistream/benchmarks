@@ -34,9 +34,9 @@ sed -i "s/server tls-server tls-server:8000/server tls-server $SERVER_IP:8000/" 
 
 # 3. Nginx proxy removed from configuration
 
-# 4. Update iptables-nat config in start.sh
+# 4. Update iptables-nat config in the startup script
 echo "Updating iptables-nat configuration..."
-sed -i "s/tls-server/$SERVER_IP/" ../iptables-nat/start.sh
+sed -i "s/tls-server/$SERVER_IP/" ../scripts/startup/iptables-nat.sh
 
 # 5. Add DNS entry to /etc/hosts in all client containers
 echo "Creating DNS update script for client containers..."
@@ -59,17 +59,21 @@ chmod +x update_dns.sh
 
 # 6. Update SSH config
 echo "Updating SSH configuration..."
-sed -i "s/root@tls-server/root@$SERVER_IP/" ../ssh/start.sh
+sed -i "s/root@tls-server/root@$SERVER_IP/" ../scripts/startup/ssh-tunnel.sh
 
 echo "Configuration updates complete."
 echo ""
 echo "To deploy the distributed environment:"
 echo ""
-echo "1. On the server machine:"
+echo "1. First, build the unified image:"
+echo "   cd /path/to/benchmarks"
+echo "   ./scripts/build_unified_image.sh"
+echo ""
+echo "2. On the server machine:"
 echo "   cd /path/to/benchmarks/distributed"
 echo "   docker-compose -f docker-compose-server.yml up -d"
 echo ""
-echo "2. On the client machine:"
+echo "3. On the client machine:"
 echo "   cd /path/to/benchmarks/distributed"
 echo "   docker-compose -f docker-compose-clients.yml up -d"
 echo "   ./update_dns.sh"

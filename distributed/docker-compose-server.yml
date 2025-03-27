@@ -3,8 +3,7 @@ version: '3.8'
 services:
   # Server side with stunnel and nginx file server
   tls-server:
-    build:
-      context: ../server
+    image: scistream-benchmark:latest
     container_name: tls-server
     hostname: tls-server
     ports:
@@ -16,10 +15,12 @@ services:
       - ../shared:/shared
       - ../config:/config
       - ../data:/data
+      - ../scripts/startup/tls-server.sh:/start.sh
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
     networks:
       - server-network
+    command: ["/start.sh"]
 
 networks:
   server-network:
