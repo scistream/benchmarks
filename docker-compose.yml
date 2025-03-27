@@ -76,7 +76,7 @@ services:
       - ./shared:/shared
       - ./config:/config
       - ./scripts/startup/ssh-tunnel.sh:/start.sh
-      - ./ssh/ssh_config:/tmp/ssh_config
+      - ./config/ssh/ssh_config:/tmp/ssh_config
     privileged: true  # Required for full system access
     cap_add:
       - NET_ADMIN  # Required for tc network traffic control
@@ -94,7 +94,7 @@ services:
     depends_on:
       - tls-server
     volumes:
-      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - ./shared:/shared
       - ./scripts/startup/haproxy.sh:/start.sh
     cap_add:
