@@ -30,15 +30,13 @@ sed -i "s/connect = tls-server:8444/connect = $SERVER_IP:8444/" ../config/stunne
 
 # 2. Update HAProxy config
 echo "Updating HAProxy configuration..."
-sed -i "s/server tls-server tls-server:8000/server tls-server $SERVER_IP:8000/" ../haproxy/haproxy.cfg
+sed -i "s/server tls-server tls-server:8000/server tls-server $SERVER_IP:8000/" ../config/haproxy/haproxy.cfg
 
-# 3. Nginx proxy removed from configuration
-
-# 4. Update iptables-nat config in the startup script
+# 3. Update iptables-nat config in the startup script
 echo "Updating iptables-nat configuration..."
 sed -i "s/tls-server/$SERVER_IP/" ../scripts/startup/iptables-nat.sh
 
-# 5. Add DNS entry to /etc/hosts in all client containers
+# 4. Add DNS entry to /etc/hosts in all client containers
 echo "Creating DNS update script for client containers..."
 cat > update_dns.sh << EOF
 #!/bin/bash
@@ -57,7 +55,7 @@ EOF
 
 chmod +x update_dns.sh
 
-# 6. Update SSH config
+# 5. Update SSH config
 echo "Updating SSH configuration..."
 sed -i "s/root@tls-server/root@$SERVER_IP/" ../scripts/startup/ssh-tunnel.sh
 
