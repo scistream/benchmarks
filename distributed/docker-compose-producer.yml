@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # Nginx file server only
+  nginx-server:
+    image: scistream-benchmark:latest
+    container_name: nginx-server
+    hostname: nginx-server
+    ports:
+      - "8000:8000"  # Direct access to nginx
+    volumes:
+      - ../shared:/shared
+      - ../config:/config
+      - ../data:/data
+      - ../scripts/startup/nginx-server.sh:/start.sh
+    cap_add:
+      - NET_ADMIN  # Required for tc network traffic control
+    networks:
+      - producer-network
+    command: ["/start.sh"]
+
+networks:
+  producer-network:
+    driver: bridge
