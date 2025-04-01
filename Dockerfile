@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # Install all packages needed for any scenario
 RUN apt-get update && \
     apt-get install -y stunnel4 nginx iproute2 openssh-server openssh-client \
-    curl iputils-ping iptables netcat-openbsd && \
+    curl iputils-ping iptables netcat-openbsd haproxy && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure SSH
