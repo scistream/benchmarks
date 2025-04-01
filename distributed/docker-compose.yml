@@ -1,0 +1,186 @@
+version: '3.8'
+
+##############################
+# SHARED CONFIGURATION
+##############################
+
+x-common-settings: &common-settings
+  image: castroflaviojr/scistream-benchmark:latest
+  volumes:
+    - ../shared:/shared
+    - ../config:/config
+  cap_add:
+    - NET_ADMIN  # Required for tc network traffic control
+  restart: unless-stopped
+
+##############################
+# PRODUCER TIER
+##############################
+
+services:
+  # Nginx file server
+  nginx-server:
+    <<: *common-settings
+    container_name: nginx-server
+    hostname: nginx-server
+    profiles: ["producer"]
+    ports:
+      - "8000:8000"  # Direct access to nginx
+    volumes:
+      - ../data:/data
+      - ../scripts/startup/nginx-server.sh:/start.sh
+    networks:
+      - producer-network
+    command: ["/start.sh"]
+
+##############################
+# TUNNEL SERVER TIER
+##############################
+  
+  # TLS server and SSH server
+  tunnel-server:
+    <<: *common-settings
+    container_name: tunnel-server
+    hostname: tunnel-server
+    profiles: ["tunnel-server"]
+    ports:
+      - "8443:8443"  # Standard TLS tunnel (TLS 1.3)
+      - "8444:8444"  # NULL cipher TLS tunnel (TLS 1.2)
+      - "2222:22"    # SSH access for tunneling
+    volumes:
+      - ../scripts/startup/tunnel-server.sh:/start.sh
+    networks:
+      - tunnel-network
+    command: ["/start.sh"]
+    
+  # HAProxy server (forwards to producer)
+  haproxy-server:
+    image: haproxy:2.6.14
+    container_name: haproxy-server
+    hostname: haproxy-server
+    profiles: ["tunnel-server"]
+    ports:
+      - "7200:7200"  # HAProxy TCP proxy to nginx-server
+    volumes:
+      - ../config/haproxy/haproxy-server.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ../shared:/shared
+      - ../scripts/startup/haproxy-server.sh:/start.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - tunnel-network
+    command: ["/start.sh"]
+    restart: unless-stopped
+
+##############################
+# CLIENT TIER
+##############################
+
+  # TLS 1.3 client
+  tls-client:
+    <<: *common-settings
+    container_name: tls-client
+    hostname: tls-client
+    profiles: ["tunnel-client"]
+    ports:
+      - "9000:9000"  # Expose TLS 1.3 tunnel endpoint
+    volumes:
+      - ../scripts/startup/tls-client.sh:/start.sh
+    networks:
+      - client-network
+    command: ["/start.sh"]
+      
+  # TLS 1.2 NULL cipher client
+  tls-null:
+    <<: *common-settings
+    container_name: tls-null
+    hostname: tls-null
+    profiles: ["tunnel-client"]
+    ports:
+      - "9001:9001"  # Expose TLS 1.2 NULL cipher tunnel endpoint
+    volumes:
+      - ../scripts/startup/tls-null.sh:/start.sh
+    networks:
+      - client-network
+    command: ["/start.sh"]
+
+  # SSH forwarding client
+  ssh:
+    <<: *common-settings
+    container_name: ssh
+    hostname: ssh
+    profiles: ["tunnel-client"]
+    ports:
+      - "7000:7000"  # SSH port forwarding to nginx
+    volumes:
+      - ../scripts/startup/ssh-tunnel.sh:/start.sh
+      - ../config/ssh/ssh_config:/tmp/ssh_config
+    networks:
+      - client-network
+    command: ["/start.sh"]
+      
+  # HAProxy TCP proxy client
+  haproxy:
+    image: haproxy:2.6.14
+    container_name: haproxy
+    hostname: haproxy
+    profiles: ["tunnel-client"]
+    ports:
+      - "7100:7100"  # HAProxy TCP proxy
+    volumes:
+      - ../config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ../shared:/shared
+      - ../scripts/startup/haproxy.sh:/start.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - client-network
+    command: ["/start.sh"]
+    restart: unless-stopped
+  
+  # HAProxy cascade proxy
+  haproxy-cascade:
+    image: haproxy:2.6.14
+    container_name: haproxy-cascade
+    hostname: haproxy-cascade
+    profiles: ["tunnel-client"]
+    ports:
+      - "7300:7300"  # HAProxy TCP cascade proxy
+    volumes:
+      - ../config/haproxy/haproxy-cascade.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ../shared:/shared
+      - ../scripts/startup/haproxy-cascade.sh:/start.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - client-network
+    command: ["/start.sh"]
+    restart: unless-stopped
+    
+  # Pure iptables NAT container
+  iptables-nat:
+    <<: *common-settings
+    container_name: iptables-nat
+    hostname: iptables-nat
+    profiles: ["tunnel-client"]
+    ports:
+      - "7400:7400"  # Pure iptables NAT
+    volumes:
+      - ../scripts/startup/iptables-nat.sh:/start.sh
+    cap_add:
+      - NET_RAW    # Required for NAT functionality
+    networks:
+      - client-network
+    command: ["/start.sh"]
+
+##############################
+# NETWORKS
+##############################
+
+networks:
+  producer-network:
+    driver: bridge
+  tunnel-network:
+    driver: bridge
+  client-network:
+    driver: bridge
