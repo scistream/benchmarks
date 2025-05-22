@@ -9,10 +9,10 @@ echo "=== System ==="
 uname -a
 echo
 
-echo "=== Docker ==="
-docker --version
-docker-compose --version
-echo
+#echo "=== Docker ==="
+#docker --version
+#docker-compose --version
+#echo
 
 echo "=== Network Tools ==="
 echo "stunnel: $(stunnel -version 2>&1 | head -n 1)"
