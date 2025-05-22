@@ -2,7 +2,8 @@
 
 ## Automatic Installation
 ```bash
-sudo ./install.sh
+sudo ./scripts/dependencies.sh
+sudo ./scripts/install.sh
 ```
 
 ## Manual Installation

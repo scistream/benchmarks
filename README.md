@@ -10,7 +10,10 @@ git clone git@github.com:scistream/benchmarks.git
 cd benchmarks
 
 # Setup environment, build and start containers
+./scripts/dependencies.sh
 ./scripts/setup.sh
+./scripts/install.sh
+./scripts/build.sh  # Build Docker image with dependencies
 ./scripts/build_unified_image.sh  # Build the unified Docker image
 docker-compose up -d
 
