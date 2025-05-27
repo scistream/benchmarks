@@ -5,7 +5,20 @@ set -e
 # Update package repositories
 apt-get update
 
-# Install all required packages
+# Install curl first
+apt-get install -y curl
+
+# Install Globus repository
+curl -LOs https://downloads.globus.org/globus-connect-server/stable/installers/repo/deb/globus-repo_latest_all.deb
+dpkg -i globus-repo_latest_all.deb
+
+# Add Globus development repository
+echo 'deb [signed-by=/usr/share/globus-repo/GPG-KEY-Globus.gpg,/usr/share/globus-repo/GPG-KEY-Globus-2024.gpg] https://downloads.globus.org/development/epic/41627/deb noble contrib' > /etc/apt/sources.list.d/tunnels.list
+
+# Update package repositories again after adding Globus repo
+apt-get update
+
+# Install all required packages including Globus
 apt-get install -y \
   stunnel4 \
   nginx \
@@ -16,7 +29,14 @@ apt-get install -y \
   iputils-ping \
   iptables \
   netcat-openbsd \
-  haproxy
+  haproxy \
+  iperf3 \
+  netperf \
+  nuttcp \
+  iperf \
+  globus-connect-server54 \
+  etcd-client \
+  etcd-server
 
 # Configure SSH
 mkdir -p /var/run/sshd

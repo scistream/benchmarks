@@ -1,5 +1,23 @@
 # TLS Tunnel Performance Testing with Docker
 
+## Software Versions
+
+| Software | Current Version | Latest Version |
+|----------|----------------|----------------|
+| nginx | 1.24.0 | 1.28.0 |
+| iproute2 | 6.1.0 | 6.14.0 |
+| openssh | 9.6p1 | 10.0 |
+| curl | 8.5.0 | 8.13.0 |
+| iputils | 20240117 | 20240905 |
+| iptables | 1.8.10 | |
+| netcat | 1.226-1ubuntu2 | |
+| haproxy | 2.8.5 | 3.1 |
+| stunnel4 | 5.74 | |
+| iperf | 2.1.9 | 2.2.1 |
+| iperf3 | 3.16 | 3.19 |
+| netperf | 2.7.0 | 2.7.0 |
+| nuttcp | 6.1.2 | 6.1.2 |
+
 This project provides a Docker-based environment to test and compare performance of various secure tunneling methods, including TLS tunnels, SSH tunnels, and TCP proxies. Uses a unified base Docker image for all test scenarios except HAProxy.
 
 ## Quick Start
@@ -110,6 +128,47 @@ docker exec tls-client ping -c 4 tls-server
 # Generate test file
 dd if=/dev/urandom of=data/100MB.bin bs=1M count=100
 ```
+
+## Globus Connect Server Quick Start
+
+The environment includes Globus Connect Server for high-performance data transfer testing.
+
+### Setup
+```bash
+# Start Globus endpoints
+cd distributed/
+docker-compose -f docker-compose-globus.yml --profile globus up -d
+
+# Wait for containers to fully start, then test etcd connectivity
+docker exec globus-endpoint-1 etcdctl --endpoints=http://localhost:2379 --user=root:globus endpoint health
+docker exec globus-endpoint-2 etcdctl --endpoints=http://localhost:2379 --user=root:globus endpoint health
+
+# Setup endpoints (replace with your details)
+docker exec globus-endpoint-1 globus-connect-server endpoint setup "Endpoint 1" \
+    --organization "Your Organization" \
+    --owner your@email.com \
+    --contact-email your@email.com
+
+docker exec globus-endpoint-2 globus-connect-server endpoint setup "Endpoint 2" \
+    --organization "Your Organization" \
+    --owner your@email.com \
+    --contact-email your@email.com
+
+# Setup nodes
+docker exec globus-endpoint-1 globus-connect-server node setup --ip-address $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' globus-endpoint-1)
+docker exec globus-endpoint-2 globus-connect-server node setup --ip-address $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' globus-endpoint-2)
+
+# Create storage gateways and collections
+docker exec globus-endpoint-1 globus-connect-server storage-gateway create tunnel "Source Gateway" \
+    --domain globus.org --domain clients.auth.globus.org --identity-mapping file:/etc/globus/map.json
+docker exec globus-endpoint-2 globus-connect-server storage-gateway create tunnel "Dest Gateway" \
+    --domain globus.org --domain clients.auth.globus.org --identity-mapping file:/etc/globus/map.json
+```
+
+### Usage
+- etcd runs on port 2379
+- Identity mapping configured for @globus.org and @clients.auth.globus.org domains
+- Default users: root/globus, ubuntu/awai
 
 ## Future Work
 

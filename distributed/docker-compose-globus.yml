@@ -1,0 +1,83 @@
+x-common-settings: &common-settings
+  image: test:latest
+  cap_add:
+    - NET_ADMIN
+  restart: unless-stopped
+
+services:
+  # Globus endpoint 1 (source)
+  globus-endpoint-1:
+    <<: *common-settings
+    container_name: globus-endpoint-1
+    hostname: globus-endpoint-1
+    profiles: ["globus"]
+    ports:
+      - "2379:2379"   # etcd
+      - "2380:2380"   # etcd peer
+      - "50000:50000"
+      - "50001:50001"
+      - "50002:50002"
+      - "50003:50003"
+      - "50004:50004"
+    volumes:
+      - ../shared:/shared
+      - ../config:/config
+      - ../data:/data
+      - ../scripts:/scripts
+    networks:
+      - globus-network
+    environment:
+      - ENDPOINT_NAME=Globus Endpoint 1
+      - REGISTRY_IP=globus-endpoint-1
+      - EXTERNAL_IP=globus-endpoint-1
+    privileged: true
+    command: >
+      bash -c "
+      /scripts/install.sh &&
+      etcd --listen-client-urls=http://0.0.0.0:2379 --advertise-client-urls=http://0.0.0.0:2379 --data-dir=/var/lib/etcd &
+      sleep 5 &&
+      /scripts/globus_setup.sh &&
+      tail -f /dev/null
+      "
+  
+  # Globus endpoint 2 (destination)
+  globus-endpoint-2:
+    <<: *common-settings
+    container_name: globus-endpoint-2
+    hostname: globus-endpoint-2
+    profiles: ["globus"]
+    ports:
+      - "2381:2379"   # etcd (different host port)
+      - "2382:2380"   # etcd peer
+      - "50005:50000"
+      - "50006:50001"
+      - "50007:50002"
+      - "50008:50003"
+      - "50009:50004"
+    volumes:
+      - ../shared:/shared
+      - ../config:/config
+      - ../data:/data
+      - ../scripts:/scripts
+    networks:
+      - globus-network
+    environment:
+      - ENDPOINT_NAME=Globus Endpoint 2
+      - REGISTRY_IP=globus-endpoint-2
+      - EXTERNAL_IP=globus-endpoint-2
+    privileged: true
+    command: >
+      bash -c "
+      /scripts/install.sh &&
+      etcd --listen-client-urls=http://0.0.0.0:2379 --advertise-client-urls=http://0.0.0.0:2379 --data-dir=/var/lib/etcd &
+      sleep 5 &&
+      /scripts/globus_setup.sh &&
+      tail -f /dev/null
+      "
+
+networks:
+  globus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
